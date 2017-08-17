@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Search films</title>
+</head>
+<body>
+
+    <div id="container">
+        
+        
+    </div>
+    <div id="map"></div>   
+    <div id="auto_complete">
+            <div id="input_box">
+                <input type="text" id="search_input" placeholder="Input name of film to search" autocomplete="off"> 
+                <input type="text" id="pac_input" placeholder="locations" >
+            </div>
+            <div id="select_box">
+
+            </div>
+        </div> 
+    
+</body>
+<script>
+    function initMap() {
+        var sf = {lat: 37.789159, lng:  -122.421810};
+        var map = new google.maps.Map(document.getElementById('container'), {
+            zoom: 12,
+            center: sf,
+            disableDefaultUI: true
+        });
+        
+        var input = document.getElementById('pac_input');
+        var searchBox = new google.maps.places.SearchBox(input);
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        // Bias the SearchBox results towards current map's viewport.
+        map.addListener('bounds_changed', function() {
+          searchBox.setBounds(map.getBounds());
+          console.log('111')
+        });
+
+        var markers = [];
+        // Listen for the event fired when the user selects a prediction and retrieve
+        // more details for that place.
+        searchBox.addListener('places_changed', function() {
+            console.log('222')
+          var places = searchBox.getPlaces();
+
+          if (places.length == 0) {
+            return;
+          }
+
+          // Clear out the old markers.
+          markers.forEach(function(marker) {
+            marker.setMap(null);
+          });
+          markers = [];
+
+          // For each place, get the icon, name and location.
+          var bounds = new google.maps.LatLngBounds();
+          places.forEach(function(place) {
+            if (!place.geometry) {
+              console.log("Returned place contains no geometry");
+              return;
+            }
+            var icon = {
+              url: place.icon,
+              size: new google.maps.Size(71, 71),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(17, 34),
+              scaledSize: new google.maps.Size(25, 25)
+            };
+
+            // Create a marker for each place.
+            markers.push(new google.maps.Marker({
+              map: map,
+              icon: icon,
+              title: place.name,
+              position: place.geometry.location
+            }));
+
+            if (place.geometry.viewport) {
+              // Only geocodes have viewport.
+              bounds.union(place.geometry.viewport);
+            } else {
+              bounds.extend(place.geometry.location);
+            }
+          });
+          map.fitBounds(bounds);
+        });
+    }
+</script>
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAT8tfxA5BvtVuqLxtNGpxpXSL2hxpuUxM&callback=initMap">
+</script>
+<script src="bundle.js"></script>
+</html>
